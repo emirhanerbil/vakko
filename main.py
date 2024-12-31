@@ -19,7 +19,7 @@ def detect_faces_from_url(image_url):
     
     gray = cv2.cvtColor(image_resized, cv2.COLOR_BGR2GRAY)
     
-    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
+    faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(10, 10))
     
     if len(faces) > 0:
         return True
@@ -38,6 +38,14 @@ for idx,row in df.iterrows():
     tmp["id"] = code
     tmp["images"] = data[0]["url"]
     image_list.append(tmp)    
+    
+for obj in image_list:
+    image_split = obj["images"].split("/")
+    image_split[4] = 640
+    image_split[5] = 480
+
+    image_split = "/".join(map(str, image_split))
+    obj["images"] = image_split
 
 @app.get("/")
 def read_root():
@@ -53,5 +61,5 @@ def read_item(product_id: str):
             break 
     if res is None:
         return {"status": "error", "look": ""}
-    
-    return {"status": "success", "look": res}
+    img_url = list(filter(lambda x: x["id"] == product_id, image_list))[0]["images"]
+    return {"status": "success", "look": res,"image_path": img_url }
